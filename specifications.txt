@@ -1,0 +1,19 @@
+Importante (reglas de negocio)
+Se debe mostrar la compilación en el reporte y esta no debe tener errores o advertencias
+A continuación se debe mostrar la ejecución de los programas
+Si el sistema o los programas no funcionan no se califica la práctica
+No se pueden utilizar sockets para comunicar procesos
+No se pueden utilizar gestores de bases de datos para almacenar la información de usuarios o productos
+Se deben validar todos los campos donde se introduzcan datos por parte del usuario o cliente
+Se deben subir todos los archivos .c y .h generados
+No deben archivar o comprimir los archivos .c y .h
+Solo se puede utilizar lenguaje C para la implementación del proyecto
+
+Práctica:
+Desarrolle un programa que implemente un inicio de sesión
+Se debe solicitar el nombre de usuario y contraseña
+La contraseña debe ser oculta cuando se introduzca
+La contraseña se debe cifrar con algún algoritmo de cifrado
+Los usuarios y contraseñas se deben guardar en un archivo de manera que cada vez que se ejecute el programa se pueda acceder con los usuarios y contraseñas guardados
+Si el usuario no se ha registrado se le debe dar la opción de registrarlo
+Se debe utilizar la biblioteca ncurses para mejorar el aspecto visual del inicio de sesión
