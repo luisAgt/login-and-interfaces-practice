@@ -1,0 +1,22 @@
+#System files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+#IDE/Editors Files
+.vscode/
+.idea/
+*.swp
+.swo
+
+#OS files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn.error.log*
+
+#temporaly files
+*.tmp
+*.temp
+.cache/
+.tmp/
