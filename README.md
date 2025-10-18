@@ -19,12 +19,13 @@
    git config --global user.email "your@email.com"
    ```
 2. **Clone the Repository**
+   create a new carpet as practice-2, login-and-interfaces or similar and execute the code **_git clone_**
    ```bash
    git clone https://github.com/luisAgt/login-and-interfaces-practice.git
    ```
 3. Open in Code Editor
    ```bash
-   cd web-proyect
+   cd login-and-interfaces
    code .
    ```
 4. **Update lastest changes**
