@@ -1,3 +1,19 @@
+/**
+ * @file login_and_interface_system.c
+ * @author Agustin Luis, Hernandez Omar, Sanchez Cristopher, Olmedo Alexandra
+ * @date 2025
+ * @details
+ *Sistema de autenticación de usuarios mediante inicios de sesión y registros de usuarios
+ *
+ *Caracteristicas principales:
+ *- Resgitro de usuarios mediante correo electronico
+ *- Autenticación de datos mediante método de cifrado
+ *- Recuperación de contraseñas mediante uso de correo electronico registrado
+ *- Base de datos de usuarios en arhivos de texto
+ *
+ * @version 2.0
+ **/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +22,9 @@
 #include <ctype.h>
 
 // Prototipos
+/**
+ * @brief Muestra el menú principal del sistema
+ */
 void menuPrincipal();
 void registrarUsuario();
 void iniciarSesion();
@@ -16,7 +35,6 @@ int validarCorreo(const char *correo);
 int validarContrasena(const char *pass);
 int correoDuplicado(const char *correo);
 
-// ---------------------- MAIN ----------------------
 int main()
 {
     initscr();
@@ -30,7 +48,11 @@ int main()
     return 0;
 }
 
-// ---------------------- MENÚ PRINCIPAL ----------------------
+/**
+ * @brief Registra un nuevo usuario en el sistema
+ * @details Solicita el nombre, correo y contraseña, valida los datos
+ * y se almacenan en el archivo con la contraseña cifrada
+ **/
 void menuPrincipal()
 {
     const char *opciones[] = {
@@ -78,13 +100,13 @@ void menuPrincipal()
             switch (seleccion)
             {
             case 0:
-                registrarUsuario();
+                registrarUsuario(); // llamada a ventana de registro de usuario
                 break;
             case 1:
-                iniciarSesion();
+                iniciarSesion(); // llamada a ventana de login
                 break;
             case 2:
-                olvideContrasena();
+                olvideContrasena(); // llamada a forget password
                 break;
             case 3:
                 clear();
@@ -98,7 +120,12 @@ void menuPrincipal()
     }
 }
 
-// ---------------------- VALIDACIONES ----------------------
+/**
+ * @brief Valida el formato del correo
+ *
+ * @param correo Cadena de texto
+ * @return 1 si es valido, 0 si es invalido
+ */
 int validarCorreo(const char *correo)
 {
     const char *at = strchr(correo, '@');
@@ -110,23 +137,36 @@ int validarCorreo(const char *correo)
     return 1;
 }
 
-int validarContrasena(const char *pass)
-{
-    int len = strlen(pass);
-    if (len < 6)
-        return 0;
+/**
+ * @brief Valida que una contraseña sea segura
+ *
+ * @param pass cadena de caracteres a validar
+ * @return 1 si cumple los requisitos, 0 si no los cumple
+ *
+ * Requrimientos:
+ * - Mínimo 8 caracteres
+ * - Al menos una letra mayúscula
+ * - Al menos un número
+ * - Al menos un carácter especial
+ *
+ * @see registrarUsuario
+ * @see olvideContraseña
+ */
+int validarContrasena(const char *pass) int len = strlen(pass);
+if (len < 8)
+    return 0;
 
-    int tieneMayus = 0, tieneNumero = 0, tieneEspecial = 0;
-    for (int i = 0; i < len; i++)
-    {
-        if (isupper(pass[i]))
-            tieneMayus = 1;
-        else if (isdigit(pass[i]))
-            tieneNumero = 1;
-        else if (!isalnum(pass[i]))
-            tieneEspecial = 1;
-    }
-    return (tieneMayus && tieneNumero && tieneEspecial);
+int tieneMayus = 0, tieneNumero = 0, tieneEspecial = 0;
+for (int i = 0; i < len; i++)
+{
+    if (isupper(pass[i]))
+        tieneMayus = 1;
+    else if (isdigit(pass[i]))
+        tieneNumero = 1;
+    else if (!isalnum(pass[i]))
+        tieneEspecial = 1;
+}
+return (tieneMayus && tieneNumero && tieneEspecial);
 }
 
 int correoDuplicado(const char *correo)
@@ -148,14 +188,22 @@ int correoDuplicado(const char *correo)
     return 0; // no hay duplicado
 }
 
-// ---------------------- CIFRAR CONTRASEÑA ----------------------
+/**
+ * @brief Cifra una contraseña usando el algoritmo DES
+ *
+ * @param original contraseña original
+ * @param cifrada cadena donde se almacenará la contraseña cifrada
+ */
 void cifrarContrasena(const char *original, char *cifrada)
 {
     char *hash = crypt(original, "xx");
     strcpy(cifrada, hash);
 }
 
-// ---------------------- REGISTRAR USUARIO ----------------------
+/**
+ * @brief Ventana de registro de usuario
+ *
+ */
 void registrarUsuario()
 {
     char nombre[50];
@@ -223,7 +271,7 @@ void registrarUsuario()
         getnstr(contrasena, 49);
         if (!validarContrasena(contrasena))
         {
-            mvprintw(8, 10, "Contrasena invalida. Min 6 chars, 1 mayus, 1 numero, 1 especial.");
+            mvprintw(8, 10, "Contrasena invalida. Min 8 chars, 1 mayus, 1 numero, 1 especial.");
             clrtoeol();
             refresh();
             getch();
@@ -251,7 +299,10 @@ void registrarUsuario()
     getch();
 }
 
-// ---------------------- INICIAR SESION ----------------------
+/**
+ * @brief Ventana de inicio de sesión
+ *
+ */
 void iniciarSesion()
 {
     char correo[50];
@@ -280,7 +331,13 @@ void iniciarSesion()
     getch();
 }
 
-// ---------------------- COMPARAR USUARIO ----------------------
+/**
+ * @brief Revisa dentro de la base de datos si el usuario y contraseña coinciden
+ *
+ * @param correo
+ * @param passCifrada
+ * @return 1 si coinciden, 0 si no coinciden
+ */
 int compararUsuario(const char *correo, const char *passCifrada)
 {
     FILE *archivo = fopen("usuarios.txt", "r");
@@ -300,7 +357,10 @@ int compararUsuario(const char *correo, const char *passCifrada)
     return 0;
 }
 
-// ---------------------- OLVIDE CONTRASENA ----------------------
+/**
+ * @brief Ventana para recuperar la contraseña olvidada
+ *
+ */
 void olvideContrasena()
 {
     char correo[50];
