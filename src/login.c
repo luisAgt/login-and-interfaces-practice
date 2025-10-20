@@ -41,9 +41,7 @@ int main()
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
-
     menuPrincipal();
-
     endwin();
     return 0;
 }
@@ -87,26 +85,22 @@ void menuPrincipal()
         switch (ch)
         {
         case KEY_UP:
-            seleccion--;
-            if (seleccion < 0)
-                seleccion = nOpciones - 1;
+            seleccion = (seleccion - 1 + nOpciones) % nOpciones;
             break;
         case KEY_DOWN:
-            seleccion++;
-            if (seleccion >= nOpciones)
-                seleccion = 0;
+            seleccion = (seleccion + 1) % nOpciones;
             break;
         case 10: // Enter
             switch (seleccion)
             {
             case 0:
-                registrarUsuario(); // llamada a ventana de registro de usuario
+                registrarUsuario();
                 break;
             case 1:
-                iniciarSesion(); // llamada a ventana de login
+                iniciarSesion();
                 break;
             case 2:
-                olvideContrasena(); // llamada a forget password
+                olvideContrasena();
                 break;
             case 3:
                 clear();
@@ -132,9 +126,7 @@ int validarCorreo(const char *correo)
     if (!at)
         return 0;
     const char *punto = strchr(at, '.');
-    if (!punto)
-        return 0;
-    return 1;
+    return (punto != NULL);
 }
 
 /**
@@ -152,40 +144,46 @@ int validarCorreo(const char *correo)
  * @see registrarUsuario
  * @see olvideContraseña
  */
-int validarContrasena(const char *pass) int len = strlen(pass);
-if (len < 8)
-    return 0;
-
-int tieneMayus = 0, tieneNumero = 0, tieneEspecial = 0;
-for (int i = 0; i < len; i++)
+int validarContrasena(const char *pass)
 {
-    if (isupper(pass[i]))
-        tieneMayus = 1;
-    else if (isdigit(pass[i]))
-        tieneNumero = 1;
-    else if (!isalnum(pass[i]))
-        tieneEspecial = 1;
-}
-return (tieneMayus && tieneNumero && tieneEspecial);
+    int len = strlen(pass);
+    if (len < 6)
+        return 0;
+    int mayus = 0, num = 0, esp = 0;
+    for (int i = 0; i < len; i++)
+    {
+        if (isupper(pass[i]))
+            mayus = 1;
+        else if (isdigit(pass[i]))
+            num = 1;
+        else if (!isalnum(pass[i]))
+            esp = 1;
+    }
+    return (mayus && num && esp);
 }
 
+/**
+ * @brief Verifica si un correo ya está registrado
+ *
+ * @param correo
+ * @return int
+ */
 int correoDuplicado(const char *correo)
 {
     FILE *archivo = fopen("usuarios.txt", "r");
     if (!archivo)
         return 0;
-
-    char nombre[50], correoGuardado[50], pass[120];
-    while (fscanf(archivo, "%s %s %s", nombre, correoGuardado, pass) == 3)
+    char n[100], c[50], p[120];
+    while (fscanf(archivo, "%[^;];%[^;];%[^\n]\n", n, c, p) == 3)
     {
-        if (strcmp(correo, correoGuardado) == 0)
+        if (strcmp(correo, c) == 0)
         {
             fclose(archivo);
-            return 1; // duplicado encontrado
+            return 1;
         }
     }
     fclose(archivo);
-    return 0; // no hay duplicado
+    return 0;
 }
 
 /**
@@ -206,25 +204,19 @@ void cifrarContrasena(const char *original, char *cifrada)
  */
 void registrarUsuario()
 {
-    char nombre[50];
-    char correo[50];
-    char contrasena[50];
-    char passCifrada[120];
-
+    char nombre[100], correo[50], contrasena[50], passCifrada[120];
     clear();
     mvprintw(3, 10, "=== REGISTRO DE USUARIO ===");
 
-    // Nombre
     while (1)
     {
-        mvprintw(5, 10, "Nombre: ");
+        mvprintw(5, 10, "Nombre completo: ");
         echo();
-        getnstr(nombre, 49);
+        getnstr(nombre, 99);
         noecho();
         if (strlen(nombre) == 0)
         {
-            mvprintw(6, 10, "Nombre no puede estar vacio.");
-            clrtoeol();
+            mvprintw(6, 10, "El nombre no puede estar vacio.");
             refresh();
             getch();
             clear();
@@ -234,7 +226,6 @@ void registrarUsuario()
             break;
     }
 
-    // Correo
     while (1)
     {
         mvprintw(6, 10, "Correo: ");
@@ -243,8 +234,7 @@ void registrarUsuario()
         noecho();
         if (!validarCorreo(correo))
         {
-            mvprintw(7, 10, "Correo invalido. Debe contener '@' y '.'");
-            clrtoeol();
+            mvprintw(7, 10, "Correo invalido (falta '@' o '.').");
             refresh();
             getch();
             clear();
@@ -252,8 +242,7 @@ void registrarUsuario()
         }
         else if (correoDuplicado(correo))
         {
-            mvprintw(7, 10, "Correo ya registrado. Intente otro.");
-            clrtoeol();
+            mvprintw(7, 10, "Correo ya registrado.");
             refresh();
             getch();
             clear();
@@ -263,7 +252,6 @@ void registrarUsuario()
             break;
     }
 
-    // Contraseña
     while (1)
     {
         mvprintw(7, 10, "Contrasena: ");
@@ -271,30 +259,29 @@ void registrarUsuario()
         getnstr(contrasena, 49);
         if (!validarContrasena(contrasena))
         {
-            mvprintw(8, 10, "Contrasena invalida. Min 8 chars, 1 mayus, 1 numero, 1 especial.");
-            clrtoeol();
+            mvprintw(8, 10, "Debe tener 6+, mayus, numero y caracter especial.");
             refresh();
             getch();
-            mvprintw(7, 10, "                                ");
+            mvprintw(8, 10, "                                                 ");
+            mvprintw(7, 22, "                                                 ");
         }
         else
             break;
     }
 
     cifrarContrasena(contrasena, passCifrada);
-
     FILE *archivo = fopen("usuarios.txt", "a");
-    if (archivo == NULL)
+    if (!archivo)
     {
-        mvprintw(9, 10, "Error al abrir el archivo.");
+        mvprintw(10, 10, "Error guardando.");
         refresh();
         getch();
         return;
     }
-    fprintf(archivo, "%s %s %s\n", nombre, correo, passCifrada);
+    fprintf(archivo, "%s;%s;%s\n", nombre, correo, passCifrada);
     fclose(archivo);
 
-    mvprintw(9, 10, "Usuario registrado correctamente!");
+    mvprintw(10, 10, "Usuario registrado correctamente!");
     refresh();
     getch();
 }
@@ -305,30 +292,65 @@ void registrarUsuario()
  */
 void iniciarSesion()
 {
-    char correo[50];
-    char contrasena[50];
-    char passCifrada[120];
-
+    char correo[50], contrasena[50], passCifrada[120], nombre[100];
     clear();
     mvprintw(3, 10, "=== INICIO DE SESION ===");
     mvprintw(5, 10, "Correo: ");
     echo();
     getnstr(correo, 49);
     noecho();
-
     mvprintw(6, 10, "Contrasena: ");
     noecho();
     getnstr(contrasena, 49);
 
     cifrarContrasena(contrasena, passCifrada);
 
-    if (compararUsuario(correo, passCifrada))
-        mvprintw(8, 10, "Bienvenido al sistema!");
+    if (compararUsuario(correo, passCifrada, nombre))
+    {
+        pantallaBienvenida(nombre);
+    }
     else
+    {
         mvprintw(8, 10, "Correo o contrasena incorrectos.");
+        refresh();
+        getch();
+    }
+}
 
-    refresh();
-    getch();
+/**
+ * @brief Pantalla de bienvenida tras iniciar sesión
+ *
+ * @param nombre Nombre del usuario
+ */
+void pantallaBienvenida(const char *nombre)
+{
+    const char *opciones[] = {"Salir"};
+    int seleccion = 0, ch;
+
+    while (1)
+    {
+        clear();
+        mvprintw(3, 10, "=== BIENVENIDO AL SISTEMA ===");
+        mvprintw(5, 12, "Hola, %s!", nombre);
+
+        for (int i = 0; i < 1; i++)
+        {
+            if (i == seleccion)
+            {
+                attron(A_REVERSE);
+                mvprintw(7 + i, 12, "%s", opciones[i]);
+                attroff(A_REVERSE);
+            }
+            else
+            {
+                mvprintw(7 + i, 12, "%s", opciones[i]);
+            }
+        }
+
+        ch = getch();
+        if (ch == 10)
+            break; // Enter
+    }
 }
 
 /**
@@ -338,17 +360,17 @@ void iniciarSesion()
  * @param passCifrada
  * @return 1 si coinciden, 0 si no coinciden
  */
-int compararUsuario(const char *correo, const char *passCifrada)
+int compararUsuario(const char *correo, const char *passCifrada, char *nombre)
 {
     FILE *archivo = fopen("usuarios.txt", "r");
     if (!archivo)
         return 0;
-
-    char nombre[50], correoGuardado[50], passGuardada[120];
-    while (fscanf(archivo, "%s %s %s", nombre, correoGuardado, passGuardada) == 3)
+    char n[100], c[50], p[120];
+    while (fscanf(archivo, "%[^;];%[^;];%[^\n]\n", n, c, p) == 3)
     {
-        if (strcmp(correo, correoGuardado) == 0 && strcmp(passCifrada, passGuardada) == 0)
+        if (strcmp(correo, c) == 0 && strcmp(p, passCifrada) == 0)
         {
+            strcpy(nombre, n);
             fclose(archivo);
             return 1;
         }
@@ -363,36 +385,31 @@ int compararUsuario(const char *correo, const char *passCifrada)
  */
 void olvideContrasena()
 {
-    char correo[50];
-    char nueva[50];
-    char cifrada[120];
-    char nombre[50], tempCorreo[50], tempPass[120];
+    char correo[50], nueva[50], cifrada[120];
+    char nombre[100], c[50], p[120];
     int encontrado = 0;
-
     clear();
-    mvprintw(3, 10, "=== OLVIDE MI CONTRASENA ===");
-    mvprintw(5, 10, "Ingrese su correo: ");
+    mvprintw(3, 10, "=== RESTABLECER CONTRASENA ===");
+    mvprintw(5, 10, "Correo: ");
     echo();
     getnstr(correo, 49);
     noecho();
 
-    FILE *archivo = fopen("usuarios.txt", "r");
-    FILE *temp = fopen("temp.txt", "w");
-
-    if (!archivo || !temp)
+    FILE *a = fopen("usuarios.txt", "r");
+    FILE *tmp = fopen("temp.txt", "w");
+    if (!a || !tmp)
     {
-        mvprintw(7, 10, "Error abriendo archivos.");
+        mvprintw(7, 10, "Error abriendo archivo.");
         refresh();
         getch();
         return;
     }
 
-    while (fscanf(archivo, "%s %s %s", nombre, tempCorreo, tempPass) == 3)
+    while (fscanf(a, "%[^;];%[^;];%[^\n]\n", nombre, c, p) == 3)
     {
-        if (strcmp(tempCorreo, correo) == 0)
+        if (strcmp(c, correo) == 0)
         {
             encontrado = 1;
-
             while (1)
             {
                 mvprintw(7, 10, "Nueva contrasena: ");
@@ -400,35 +417,31 @@ void olvideContrasena()
                 getnstr(nueva, 49);
                 if (!validarContrasena(nueva))
                 {
-                    mvprintw(8, 10, "Contrasena invalida. Min 6 chars, 1 mayus, 1 numero, 1 especial.");
-                    clrtoeol();
+                    mvprintw(8, 10, "Debe tener 6+, mayus, numero y caracter especial.");
                     refresh();
                     getch();
-                    mvprintw(7, 10, "                                ");
+                    mvprintw(8, 10, "                                                   ");
+                    mvprintw(7, 30, "                                                   ");
                 }
                 else
                     break;
             }
-
             cifrarContrasena(nueva, cifrada);
-            fprintf(temp, "%s %s %s\n", nombre, tempCorreo, cifrada);
+            fprintf(tmp, "%s;%s;%s\n", nombre, c, cifrada);
         }
         else
-        {
-            fprintf(temp, "%s %s %s\n", nombre, tempCorreo, tempPass);
-        }
+            fprintf(tmp, "%s;%s;%s\n", nombre, c, p);
     }
 
-    fclose(archivo);
-    fclose(temp);
+    fclose(a);
+    fclose(tmp);
     remove("usuarios.txt");
     rename("temp.txt", "usuarios.txt");
 
     if (encontrado)
-        mvprintw(9, 10, "Contrasena actualizada correctamente!");
+        mvprintw(10, 10, "Contrasena actualizada correctamente!");
     else
-        mvprintw(9, 10, "Correo no encontrado.");
-
+        mvprintw(10, 10, "Correo no encontrado.");
     refresh();
     getch();
 }
